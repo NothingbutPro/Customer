@@ -1,0 +1,161 @@
+{
+  "project_info": {
+    "project_number": "697791691211",
+    "firebase_url": "https://girro-93e03.firebaseio.com",
+    "project_id": "girro-93e03",
+    "storage_bucket": "girro-93e03.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:697791691211:android:061b8a9a363237ca",
+        "android_client_info": {
+          "package_name": "com.pyckup.app"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "697791691211-b4goqi02dr15fmms2vcpet80381tfrai.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.pyckup.app",
+            "certificate_hash": "befa830ff57f03dffd4ddf8355d7251cb8ed9c51"
+          }
+        },
+        {
+          "client_id": "697791691211-nik8vh1h17q2mdpgrjk3gbvpp08u4hp1.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.pyckup.app",
+            "certificate_hash": "498961505d96e1c7cf29029221ea0701c1c804d3"
+          }
+        },
+        {
+          "client_id": "697791691211-n3rkfjqbbj7500sv0nk950h6l1bhlbnc.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.pyckup.app",
+            "certificate_hash": "affa1f061f7fd660e056aeb053e80438ccf95d6e"
+          }
+        },
+        {
+          "client_id": "697791691211-vo6rl9731jvh9p6jjpp6e90ab900a257.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.pyckup.app",
+            "certificate_hash": "28620594f9d3bd4e7cfca2e639de795805824b77"
+          }
+        },
+        {
+          "client_id": "697791691211-f9vnojs6fllpnm3pgs721h9dk54o50an.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAx_2bVfVwmHPugUSNr0vVovJdLErGADnI"
+        }
+      ],
+      "services": {
+        "analytics_service": {
+          "status": 1
+        },
+        "appinvite_service": {
+          "status": 2,
+          "other_platform_oauth_client": [
+            {
+              "client_id": "697791691211-f9vnojs6fllpnm3pgs721h9dk54o50an.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "697791691211-khro6mtuc3dgj9spbscm2tdceljrmhbu.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.pyckup.provider"
+              }
+            }
+          ]
+        },
+        "ads_service": {
+          "status": 2
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:697791691211:android:8e6ffa55b85b42f5",
+        "android_client_info": {
+          "package_name": "com.pyckup.provider"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "697791691211-2ojamdk70egjomokdh4s5v48js49cg55.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.pyckup.provider",
+            "certificate_hash": "befa830ff57f03dffd4ddf8355d7251cb8ed9c51"
+          }
+        },
+        {
+          "client_id": "697791691211-0584f89q41424gddskcp5dhsi6i1n058.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.pyckup.provider",
+            "certificate_hash": "498961505d96e1c7cf29029221ea0701c1c804d3"
+          }
+        },
+        {
+          "client_id": "697791691211-2rid10i1vdb6l6bt1nmvvnfh10knq4em.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.pyckup.provider",
+            "certificate_hash": "affa1f061f7fd660e056aeb053e80438ccf95d6e"
+          }
+        },
+        {
+          "client_id": "697791691211-nbna7fm5onghn9b2vimb3k13ehfl7s65.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.pyckup.provider",
+            "certificate_hash": "28620594f9d3bd4e7cfca2e639de795805824b77"
+          }
+        },
+        {
+          "client_id": "697791691211-f9vnojs6fllpnm3pgs721h9dk54o50an.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAx_2bVfVwmHPugUSNr0vVovJdLErGADnI"
+        }
+      ],
+      "services": {
+        "analytics_service": {
+          "status": 1
+        },
+        "appinvite_service": {
+          "status": 2,
+          "other_platform_oauth_client": [
+            {
+              "client_id": "697791691211-f9vnojs6fllpnm3pgs721h9dk54o50an.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "697791691211-khro6mtuc3dgj9spbscm2tdceljrmhbu.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.pyckup.provider"
+              }
+            }
+          ]
+        },
+        "ads_service": {
+          "status": 2
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
