@@ -69,5 +69,10 @@ dependencies {
     compile 'com.android.support.constraint:constraint-layout:1.0.2'
     compile 'com.facebook.android:account-kit-sdk:4.+'
     testCompile 'junit:junit:4.12'
+
+    compile('com.paypal.sdk:paypal-android-sdk:2.15.3') {
+        exclude group: 'com.squareup.okhttp3', module: 'okhttp'
+        exclude group: 'io.card'
+    }
 }
 apply plugin: 'com.google.gms.google-services'

@@ -11,7 +11,7 @@ public class URLHelper {
     public static final String APP_URL = "https://play.google.com/store/apps/details?id=com.tranxitpro.app&hl=en";
     public static final int client_id = 2;
     public static final String client_secret = "EOP75uKrpGnlyYi4VEg1DJ40c2wKLooNmzP2bVwW";
-    public static final String STRIPE_TOKEN = "pk_test_0G4SKYMm8dK6kgayCPwKWTXy";
+    public static final String STRIPE_TOKEN = "pk_test_Sgdyb2qySWsq4MaIZZ6e1TIV";
 //    public static final String client_secret = "sk_test_qx8uEcUebR3MXl8IZf2WedI5";
 //    public static final String STRIPE_TOKEN = "pk_test_0G4SKYMm8dK6kgayCPwKWTXy";
 
@@ -26,6 +26,7 @@ public class URLHelper {
     public static final String SEND_REQUEST_API = base+"api/user/send/request";
     public static final String CANCEL_REQUEST_API = base+"api/user/cancel/request";
     public static final String PAY_NOW_API = base+"api/user/payment";
+    public static final String PAY_NOW_PAYPAL = base+"api/user/paypal";
     public static final String RATE_PROVIDER_API = base+"api/user/rate/provider";
     public static final String CARD_PAYMENT_LIST = base+"api/user/card";
     public static final String ADD_CARD_TO_ACCOUNT_API = base+"api/user/card";

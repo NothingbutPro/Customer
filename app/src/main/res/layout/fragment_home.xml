@@ -85,7 +85,7 @@
                             android:id="@+id/imgPaymentType"
                             android:layout_width="@dimen/_20sdp"
                             android:layout_height="@dimen/_20sdp"
-                            app:srcCompat="@drawable/money1" />
+                            app:srcCompat="@drawable/ic_paypal" />
 
                         <com.pyckup.app.Utils.MyBoldTextView
                             android:id="@+id/lblPaymentType"
@@ -93,7 +93,7 @@
                             android:layout_height="wrap_content"
                             android:layout_marginLeft="10dp"
                             android:layout_weight="1"
-                            android:text="@string/selected_payment_mode"
+                            android:text="@string/selected_paypal"
                             android:textColor="@android:color/black"
                             android:textSize="16sp" />
 

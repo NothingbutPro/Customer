@@ -51,6 +51,9 @@
                     android:layout_height="wrap_content"
                     android:imeOptions="actionNext"
                     android:inputType="textEmailAddress"
+                    android:editable="false"
+                    android:focusable="false"
+                    android:clickable="false"
                     android:maxLines="1" />
 
             </android.support.design.widget.TextInputLayout>

@@ -45,10 +45,33 @@
             android:textColor="@color/black_text_color"
             android:textSize="18sp" />
 
-        <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+        <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="16dp"
+            android:gravity="center_vertical">
+
+            <ImageView
+                android:layout_width="@dimen/_30sdp"
+                android:layout_height="@dimen/_30sdp"
+                android:layout_gravity="center_vertical"
+
+                android:scaleType="fitXY"
+                app:srcCompat="@drawable/ic_paypal" />
+
+            <com.pyckup.app.Utils.MyTextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginLeft="10dp"
+                android:gravity="center_vertical"
+                android:text="@string/selected_paypal"
+                android:textColor="@color/black_text_color"
+                android:textSize="16sp" />
+        </LinearLayout>
+
+        <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
             android:gravity="center_vertical">
 
             <ImageView
@@ -60,6 +83,7 @@
                 app:srcCompat="@drawable/money1" />
 
             <com.pyckup.app.Utils.MyTextView
+                android:id="@+id/myTextView2"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginLeft="10dp"
@@ -67,6 +91,8 @@
                 android:text="@string/selected_payment_mode"
                 android:textColor="@color/black_text_color"
                 android:textSize="16sp" />
+
+
         </LinearLayout>
 
         <com.pyckup.app.Utils.MyBoldTextView

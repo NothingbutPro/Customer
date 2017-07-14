@@ -104,6 +104,11 @@ import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.maps.model.PolylineOptions;
 import com.koushikdutta.async.future.FutureCallback;
 import com.koushikdutta.ion.Ion;
+import com.paypal.android.sdk.payments.PayPalConfiguration;
+import com.paypal.android.sdk.payments.PayPalPayment;
+import com.paypal.android.sdk.payments.PayPalService;
+import com.paypal.android.sdk.payments.PaymentActivity;
+import com.paypal.android.sdk.payments.PaymentConfirmation;
 import com.pyckup.app.Activities.EditProfile;
 import com.pyckup.app.Helper.AppHelper;
 import com.pyckup.app.Helper.VolleyMultipartRequest;
@@ -139,6 +144,7 @@ import java.io.FileDescriptor;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.math.BigDecimal;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.text.ParseException;
@@ -164,6 +170,22 @@ public class HomeFragment extends Fragment implements OnMapReadyCallback, Locati
     View rootView;
     HomeFragmentListener listener;
 
+    /*payPal function*/
+    private static final String CONFIG_ENVIRONMENT = PayPalConfiguration.ENVIRONMENT_NO_NETWORK;
+    // note that these credentials will differ between live & sandbox environments.
+    //private static final String CONFIG_CLIENT_ID = "credentials from developer.paypal.com";
+    private static final String CONFIG_CLIENT_ID = "AbiDCcqxcz28toQyU9yxUX6c3hLl1N6dv2SYGbeoaN93MqQaE3l658GCiHMDRBTL613aUwaoNlXujpR2";
+
+    private static final int REQUEST_CODE_PAYMENT = 1;
+
+
+    private static PayPalConfiguration config = new PayPalConfiguration()
+            .environment(CONFIG_ENVIRONMENT)
+            .clientId(CONFIG_CLIENT_ID)
+            // The following are only used in PayPalFuturePaymentActivity.
+            .merchantName("Example Merchant")
+            .merchantPrivacyPolicyUri(Uri.parse("https://www.example.com/privacy"))
+            .merchantUserAgreementUri(Uri.parse("https://www.example.com/legal"));
 
     public static HomeFragment newInstance() {
         return new HomeFragment();
@@ -174,7 +196,7 @@ public class HomeFragment extends Fragment implements OnMapReadyCallback, Locati
 
 
     private static final int SELECT_PHOTO = 100;
-    String isPaid = "", paymentMode = "";
+    String isPaid = "", paymentMode = "", strTotalPrice = "", strServiceName = "";
     Utilities utils = new Utilities();
     int flowValue = 0;
     String strCurrentStatus = "";
@@ -337,6 +359,10 @@ public class HomeFragment extends Fragment implements OnMapReadyCallback, Locati
     boolean scheduleTrip = false;
 
     MapRipple mapRipple;
+
+    //Add card
+
+    boolean addCardResult=false;
 
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
@@ -790,7 +816,15 @@ public class HomeFragment extends Fragment implements OnMapReadyCallback, Locati
                     getImageAndComment();
                     break;
                 case R.id.btnPayNow:
-                    payNow();
+
+                    if ( !paymentMode.equals("PAYPAL") )
+                    {
+                        payNow();
+                    }
+                    else
+                    {
+                        payNowPayPal();
+                    }
                     break;
                 case R.id.btnSubmitReview:
                     submitReviewCall();
@@ -1639,8 +1673,8 @@ public class HomeFragment extends Fragment implements OnMapReadyCallback, Locati
         }
         if (requestCode == ADD_CARD_CODE) {
             if (resultCode == Activity.RESULT_OK) {
-                boolean result = data.getBooleanExtra("isAdded", false);
-                if (result) {
+                addCardResult = data.getBooleanExtra("isAdded", false);
+                if (addCardResult) {
                     getCards();
                 }
             }
@@ -1669,6 +1703,37 @@ public class HomeFragment extends Fragment implements OnMapReadyCallback, Locati
                 }
             } catch (IOException e) {
                 e.printStackTrace();
+            }
+        }
+        else if (requestCode == REQUEST_CODE_PAYMENT) {
+            if (resultCode == Activity.RESULT_OK) {
+                PaymentConfirmation confirm = data.getParcelableExtra(PaymentActivity.EXTRA_RESULT_CONFIRMATION);
+                if (confirm != null) {
+                    try {
+
+                        JSONObject result = confirm.toJSONObject();
+                        Log.i("result", "" + result);
+
+                        JSONObject responseObj = result.getJSONObject("response");
+                        String payID = responseObj.getString("id");
+                        String state = responseObj.getString("state");
+                        Log.e("payID", "" + payID);
+
+
+
+                        updatePayPal(state, payID);
+
+                    } catch (JSONException e) {
+                        Log.e("payment_log_0", "an extremely unlikely failure occurred: ", e);
+                    }
+                }
+            } else if (resultCode == Activity.RESULT_CANCELED) {
+                Log.i("payment_log_1", "The user canceled.");
+                Toast.makeText(getActivity(), "Paypal canceled", Toast.LENGTH_SHORT).show();
+            } else if (resultCode == PaymentActivity.RESULT_EXTRAS_INVALID) {
+                Log.i(
+                        "payment_log_2",
+                        "An invalid Payment or PayPalConfiguration was submitted. Please see the docs.");
             }
         }
 
@@ -1816,6 +1881,13 @@ public class HomeFragment extends Fragment implements OnMapReadyCallback, Locati
                                         cardInfo.setCardType("CASH");
                                         cardInfo.setLastFour("CASH");
                                         cardInfoArrayList.add(cardInfo);
+
+                                        CardInfo payPalInfo = new CardInfo();
+                                        payPalInfo.setCardId("PAYPAL");
+                                        payPalInfo.setCardType("PAYPAL");
+                                        payPalInfo.setLastFour("PAYPAL");
+                                        cardInfoArrayList.add(payPalInfo);
+
                                         for (int i = 0; i < jsonArray.length(); i++) {
                                             JSONObject cardObj = jsonArray.getJSONObject(i);
                                             cardInfo = new CardInfo();
@@ -1823,7 +1895,32 @@ public class HomeFragment extends Fragment implements OnMapReadyCallback, Locati
                                             cardInfo.setCardType(cardObj.optString("brand"));
                                             cardInfo.setLastFour(cardObj.optString("last_four"));
                                             cardInfoArrayList.add(cardInfo);
+
+                                            if (addCardResult) {
+                                                addCardResult=false;
+                                                getCardDetailsForPayment(cardInfoArrayList.get(2));
+                                            }
                                         }
+                                    }
+                                    else
+                                    {
+                                        CardInfo cardInfo = new CardInfo();
+                                        cardInfo.setCardId("CASH");
+                                        cardInfo.setCardType("CASH");
+                                        cardInfo.setLastFour("CASH");
+                                        cardInfoArrayList.add(cardInfo);
+
+                                        CardInfo payPalInfo = new CardInfo();
+                                        payPalInfo.setCardId("PAYPAL");
+                                        payPalInfo.setCardType("PAYPAL");
+                                        payPalInfo.setLastFour("PAYPAL");
+                                        cardInfoArrayList.add(payPalInfo);
+
+                                        CardInfo creditInfo = new CardInfo();
+                                        creditInfo.setCardId("Card");
+                                        creditInfo.setCardType("Card");
+                                        creditInfo.setLastFour("Card");
+                                        cardInfoArrayList.add(creditInfo);
                                     }
 
                                 } catch (JSONException e1) {
@@ -1837,6 +1934,12 @@ public class HomeFragment extends Fragment implements OnMapReadyCallback, Locati
                             cardInfo.setCardType("CASH");
                             cardInfo.setLastFour("CASH");
                             cardInfoArrayList.add(cardInfo);
+
+                            CardInfo payPalInfo = new CardInfo();
+                            payPalInfo.setCardId("PAYPAL");
+                            payPalInfo.setCardType("PAYPAL");
+                            payPalInfo.setLastFour("PAYPAL");
+                            cardInfoArrayList.add(payPalInfo);
                         }
                     }
                 });
@@ -2715,7 +2818,13 @@ public class HomeFragment extends Fragment implements OnMapReadyCallback, Locati
         for (int i = 0; i < cardInfoArrayList.size(); i++) {
             if (cardInfoArrayList.get(i).getLastFour().equals("CASH")) {
                 cardsList[i] = "CASH";
-            } else {
+            }
+            else if (cardInfoArrayList.get(i).getLastFour().equals("PAYPAL")) {
+                cardsList[i] = "PAYPAL";
+            }
+            if (cardInfoArrayList.get(i).getLastFour().equals("CARD")) {
+                cardsList[i] = "CARD";
+            }else {
                 cardsList[i] = "XXXX-XXXX-XXXX-" + cardInfoArrayList.get(i).getLastFour();
             }
         }
@@ -2728,11 +2837,16 @@ public class HomeFragment extends Fragment implements OnMapReadyCallback, Locati
             String card;
             if (cardInfoArrayList.get(j).getLastFour().equals("CASH")) {
                 card = "CASH";
-            } else {
+            }
+            else if (cardInfoArrayList.get(j).getLastFour().equals("PAYPAL")) {
+                card = "PAYPAL";
+            }else {
                 card = "XXXX-XXXX-XXXX-" + cardInfoArrayList.get(j).getLastFour();
             }
             arrayAdapter.add(card);
         }
+
+        //builderSingle.setSingleChoiceItems(arrayAdapter, 0, null);
         builderSingle.setPositiveButton("Ok", new DialogInterface.OnClickListener() {
             @Override
             public void onClick(DialogInterface dialog, int which) {
@@ -2750,15 +2864,15 @@ public class HomeFragment extends Fragment implements OnMapReadyCallback, Locati
                         dialog.dismiss();
                     }
                 });
-//        builderSingle.setAdapter(
-//                arrayAdapter,
-//                new DialogInterface.OnClickListener() {
-//                    @Override
-//                    public void onClick(DialogInterface dialog, int which) {
-//                        getCardDetailsForPayment(cardInfoArrayList.get(which));
-//                        dialog.dismiss();
-//                    }
-//                });
+        builderSingle.setAdapter(
+                arrayAdapter,
+                new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        getCardDetailsForPayment(cardInfoArrayList.get(which));
+                        dialog.dismiss();
+                    }
+                });
         builderSingle.show();
     }
 
@@ -2769,7 +2883,17 @@ public class HomeFragment extends Fragment implements OnMapReadyCallback, Locati
             SharedHelper.putKey(context, "payment_mode", "CASH");
             imgPaymentType.setImageResource(R.drawable.money1);
             lblPaymentType.setText("CASH");
-        } else {
+        }
+        else if (cardInfo.getLastFour().equals("PAYPAL")) {
+            SharedHelper.putKey(context, "card_id","");
+            SharedHelper.putKey(context, "payment_mode", "PAYPAL");
+            imgPaymentType.setImageResource(R.drawable.ic_paypal);
+            //lblPaymentType.setText("CASH");
+            lblPaymentType.setText("PayPal");
+        }
+        else if (cardInfo.getLastFour().equals("CARD")) {
+            gotoAddCard();
+        }else {
             SharedHelper.putKey(context, "card_id", cardInfo.getCardId());
             SharedHelper.putKey(context, "payment_mode", "CARD");
             imgPaymentType.setImageResource(R.drawable.visa);
@@ -2789,6 +2913,9 @@ public class HomeFragment extends Fragment implements OnMapReadyCallback, Locati
             object.put("request_id", SharedHelper.getKey(context, "request_id"));
             object.put("payment_mode", paymentMode);
             object.put("is_paid", isPaid);
+
+            utils.print("PayNowRequestParams", object.toString());
+
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -2857,6 +2984,96 @@ public class HomeFragment extends Fragment implements OnMapReadyCallback, Locati
 
     }
 
+    public void payNowPayPal()
+    {
+        PayPalPayment payPalPayment = new PayPalPayment(new BigDecimal(strTotalPrice), "USD", strServiceName, PayPalPayment.PAYMENT_INTENT_SALE);
+        Intent intent = new Intent(getActivity(), PaymentActivity.class);
+        intent.putExtra(PayPalService.EXTRA_PAYPAL_CONFIGURATION, config);
+        intent.putExtra(PaymentActivity.EXTRA_PAYMENT, payPalPayment);
+        startActivityForResult(intent, REQUEST_CODE_PAYMENT);
+    }
+
+    public void updatePayPal(String state, String paymentId)
+    {
+        customDialog = new CustomDialog(context);
+        customDialog.setCancelable(false);
+        if (customDialog != null)
+            customDialog.show();
+
+        JSONObject object = new JSONObject();
+        try {
+            object.put("request_id", SharedHelper.getKey(context, "request_id"));
+            //object.put("payment_mode", paymentMode);
+            object.put("state", state);
+            object.put("payment_id", paymentId);
+
+            //object.put("is_paid", isPaid);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        JsonObjectRequest jsonObjectRequest = new JsonObjectRequest(Request.Method.POST, URLHelper.PAY_NOW_PAYPAL, object, new Response.Listener<JSONObject>() {
+            @Override
+            public void onResponse(JSONObject response) {
+                utils.print("PayNowRequestResponse", response.toString());
+                if ((customDialog != null)&& (customDialog.isShowing()))
+                    customDialog.dismiss();
+                flowValue = 6;
+                layoutChanges();
+            }
+        }, new Response.ErrorListener() {
+            @Override
+            public void onErrorResponse(VolleyError error) {
+                if ((customDialog != null)&& (customDialog.isShowing()))
+                    customDialog.dismiss();
+                String json = "";
+                NetworkResponse response = error.networkResponse;
+                if (response != null && response.data != null) {
+                    try {
+                        JSONObject errorObj = new JSONObject(new String(response.data));
+
+                        if (response.statusCode == 400 || response.statusCode == 405 || response.statusCode == 500) {
+                            try {
+                                utils.displayMessage(getView(), errorObj.optString("message"));
+                            } catch (Exception e) {
+                                utils.displayMessage(getView(), getString(R.string.something_went_wrong));
+                            }
+                        } else if (response.statusCode == 401) {
+                            refreshAccessToken("SEND_REQUEST");
+                        } else if (response.statusCode == 422) {
+
+                            json = trimMessage(new String(response.data));
+                            if (json != "" && json != null) {
+                                utils.displayMessage(getView(), json);
+                            } else {
+                                utils.displayMessage(getView(), getString(R.string.please_try_again));
+                            }
+                        } else if (response.statusCode == 503) {
+                            utils.displayMessage(getView(), getString(R.string.server_down));
+                        } else {
+                            utils.displayMessage(getView(), getString(R.string.please_try_again));
+                        }
+
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                        utils.displayMessage(getView(), getString(R.string.something_went_wrong));
+                    }
+
+                } else {
+                    utils.displayMessage(getView(), getString(R.string.please_try_again));
+                }
+            }
+        }) {
+            @Override
+            public Map<String, String> getHeaders() throws AuthFailureError {
+                HashMap<String, String> headers = new HashMap<String, String>();
+                headers.put("Authorization", "" + SharedHelper.getKey(context, "token_type") + " " + SharedHelper.getKey(context, "access_token"));
+                headers.put("X-Requested-With", "XMLHttpRequest");
+                return headers;
+            }
+        };
+
+        XuberApplication.getInstance().addToRequestQueue(jsonObjectRequest);
+    }
 
     private void checkStatus() {
         try {
@@ -3058,6 +3275,7 @@ public class HomeFragment extends Fragment implements OnMapReadyCallback, Locati
                                                 JSONObject provider = requestStatusCheckObject.optJSONObject("provider");
                                                 if (requestStatusCheckObject.optJSONObject("payment") != null) {
                                                     JSONObject payment = requestStatusCheckObject.optJSONObject("payment");
+                                                    strServiceName=requestStatusCheckObject.optJSONObject("service_type").optString("name");
                                                     isPaid = requestStatusCheckObject.optString("paid");
                                                     paymentMode = requestStatusCheckObject.optString("payment_mode");
                                                     lblBasePrice.setText(SharedHelper.getKey(context, "currency") + "" + payment.optString("fixed"));
@@ -3066,6 +3284,7 @@ public class HomeFragment extends Fragment implements OnMapReadyCallback, Locati
                                                     //lblCommision.setText(SharedHelper.getKey(context, "currency") + "" + payment.optString("commision"));
                                                     lblTotalPrice.setText(SharedHelper.getKey(context, "currency") + ""
                                                             + payment.optString("total"));
+                                                    strTotalPrice = payment.optString("total");
                                                 }
                                                 if (requestStatusCheckObject.optString("booking_id")!= null &&
                                                         !requestStatusCheckObject.optString("booking_id").equalsIgnoreCase("")) {
@@ -3092,7 +3311,14 @@ public class HomeFragment extends Fragment implements OnMapReadyCallback, Locati
                                                     layoutChanges();
                                                     imgPaymentTypeInvoice.setImageResource(R.drawable.visa);
                                                     lblPaymentTypeInvoice.setText("CARD");
-                                                } else if (isPaid.equalsIgnoreCase("1")) {
+                                                }
+                                                else if (isPaid.equalsIgnoreCase("0") && paymentMode.equalsIgnoreCase("PAYPAL")) {
+                                                    btnPayNow.setVisibility(View.VISIBLE);
+                                                    flowValue = 5;
+                                                    layoutChanges();
+                                                    imgPaymentTypeInvoice.setImageResource(R.drawable.ic_paypal);
+                                                    lblPaymentTypeInvoice.setText("PayPal");
+                                                }else if (isPaid.equalsIgnoreCase("1")) {
                                                     btnPayNow.setVisibility(View.GONE);
                                                     lblProviderNameRate.setText(getString(R.string.rate_provider) + " " + provider.optString("first_name") + " " + provider.optString("last_name"));
                                                     if (provider.optString("avatar").startsWith("http"))
@@ -3112,6 +3338,7 @@ public class HomeFragment extends Fragment implements OnMapReadyCallback, Locati
                                             strTag = "";
                                             try {
                                                 if (requestStatusCheckObject.optJSONObject("payment") != null) {
+                                                    strServiceName=requestStatusCheckObject.optJSONObject("service_type").optString("name");
                                                     JSONObject payment = requestStatusCheckObject.optJSONObject("payment");
                                                     lblBasePrice.setText(SharedHelper.getKey(context, "currency") + ""
                                                             + payment.optString("fixed"));
@@ -3121,6 +3348,7 @@ public class HomeFragment extends Fragment implements OnMapReadyCallback, Locati
                                                             + payment.optString("distance"));
                                                     lblTotalPrice.setText(SharedHelper.getKey(context, "currency") + ""
                                                             + payment.optString("total"));
+                                                    strTotalPrice=payment.optString("total");
                                                 }
                                                 JSONObject provider = requestStatusCheckObject.optJSONObject("provider");
                                                 isPaid = requestStatusCheckObject.optString("paid");
@@ -3133,14 +3361,21 @@ public class HomeFragment extends Fragment implements OnMapReadyCallback, Locati
                                                     layoutChanges();
                                                     btnPayNow.setVisibility(View.GONE);
                                                     imgPaymentTypeInvoice.setImageResource(R.drawable.money1);
-                                                    lblPaymentTypeInvoice.setText("CASH");
+                                                    lblPaymentTypeInvoice.setText("PayPal");
                                                 } else if (isPaid.equalsIgnoreCase("0") && paymentMode.equalsIgnoreCase("CARD")) {
                                                     flowValue = 5;
                                                     layoutChanges();
                                                     imgPaymentTypeInvoice.setImageResource(R.drawable.visa);
                                                     lblPaymentTypeInvoice.setText("CARD");
                                                     btnPayNow.setVisibility(View.VISIBLE);
-                                                } else if (isPaid.equalsIgnoreCase("1")) {
+                                                }
+                                                else if (isPaid.equalsIgnoreCase("0") && paymentMode.equalsIgnoreCase("PAYPAL")) {
+                                                    flowValue = 5;
+                                                    layoutChanges();
+                                                    imgPaymentTypeInvoice.setImageResource(R.drawable.ic_paypal);
+                                                    lblPaymentTypeInvoice.setText("PayPal");
+                                                    btnPayNow.setVisibility(View.VISIBLE);
+                                                }else if (isPaid.equalsIgnoreCase("1")) {
                                                     btnPayNow.setVisibility(View.GONE);
                                                     lblProviderNameRate.setText(getString(R.string.rate_provider) + " " + provider.optString("first_name") + " " + provider.optString("last_name"));
                                                     if (provider.optString("avatar").startsWith("http"))

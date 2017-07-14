@@ -58,6 +58,7 @@
     <!-- Home Fragment-->
     <string name="where_to_go">Where to?</string>
     <string name="selected_option">Economy</string>
+    <string name="selected_paypal">PayPal</string>
     <string name="selected_payment_mode">Cash</string>
     <string name="change">Change</string>
     <string name="request_xuber">Request Delivery</string>
